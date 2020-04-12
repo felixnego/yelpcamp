@@ -9,13 +9,13 @@ app.use(bodyParser.json());
 
 mongoose.connect('mongodb://localhost/yelp_camp');
 
-let campground_schema = new mongoose.Schema({
+let campgroundSchema = new mongoose.Schema({
     name: String,
     image: String,
     description: String
 });
 
-let Campground = mongoose.model('Campground', campground_schema);
+let Campground = mongoose.model('Campground', campgroundSchema);
 
 
 app.get('/', (req, res) => {
@@ -38,9 +38,9 @@ app.post('/campgrounds', (req, res) => {
     let name = req.body.name;
     let image = req.body.image;
     let description = req.body.description;
-    let new_campground = { name: name, image: image, description: description}
+    let newCampground = { name: name, image: image, description: description}
 
-    Campground.create(new_campground, (err, camp) => {
+    Campground.create(newCampground, (err, camp) => {
         if (err) {
             console.log(err);
         } else {
