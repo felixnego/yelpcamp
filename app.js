@@ -53,13 +53,13 @@ app.get('/campgrounds/new', (req, res) => {
 app.get('/campgrounds/:id', (req, res) => {
     let id = req.params.id;
 
-    Campground.findById(id, (err, camp) => {
+    Campground.findById(id).populate('comments').exec((err, camp) => {
         if (err) {
             console.log(err);
         } else {
-            res.render('show', {campground: camp});
+            res.render('show', { campground: camp });
         }
-    });
+    }); 
 });
 
 app.listen(3000, ()=> {

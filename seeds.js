@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Campground = require('./models/campground')
+const Comment = require('./models/comment')
 
 
 const data = [
@@ -44,6 +45,7 @@ function seedDB() {
                                 } else {
                                     camp.comments.push(comm)
                                     camp.save()
+                                    console.log('Added new comment...')
                                 }
                             }
                         )
