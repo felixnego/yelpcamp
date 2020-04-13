@@ -2,11 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Campground = require('./models/campground')
+const seedDB = require('./seeds')
 const app = express();
+
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+seedDB()
 
 mongoose.connect('mongodb://localhost/yelp_camp');
 
