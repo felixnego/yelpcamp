@@ -3,7 +3,7 @@ const Campground = require('../models/campground')
 const Comment = require('../models/comment')
 const router = express.Router({mergeParams: true})
 
-
+// midleware
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
         return next()
@@ -11,6 +11,22 @@ function isLoggedIn(req, res, next) {
     res.redirect('/login')
 }
 
+async function checkCommentOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        try {
+            let foundComm = await Comment.findById(req.params.comment_id)
+            if (foundComm.author.id.equals(req.user.id)) {
+                return next()
+            }
+        } catch (err) {
+            console.log(err)
+            res.redirect('back')
+        }
+    }
+    res.redirect('back')
+}
+
+// routes
 router.get('/new', isLoggedIn, (req, res) => {
     let id = req.params.id
 
@@ -49,6 +65,38 @@ router.post('/', isLoggedIn, (req, res) => {
             })
         }
     })
+})
+
+// edit and update
+router.get('/:comment_id/edit', checkCommentOwnership,  async (req, res) => {
+    try {
+        let currentComment = await Comment.findById(req.params.comment_id)
+        let camp = await Campground.findById(req.params.id)
+        res.render('comments/edit', {campground: camp, comment: currentComment})
+    } catch(err) {
+        res.redirect('back')
+    }
+})
+
+router.put('/:comment_id', checkCommentOwnership, async (req, res) => {
+    Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, (err, updatedComm) => {
+        if (err) {
+            res.redirect('back')
+        } else {
+            res.redirect('/campgrounds/' + req.params.id)
+        }
+    })
+})
+
+// delete
+router.delete('/:comment_id', checkCommentOwnership, (req, res) => {
+    Comment.findByIdAndRemove(req.params.comment_id, (err) => {
+        if (err) {
+            console.log(err)
+        }
+    })
+
+    res.redirect('/campgrounds/' + req.params.id)
 })
 
 module.exports = router

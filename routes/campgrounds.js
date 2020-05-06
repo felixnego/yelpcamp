@@ -3,6 +3,7 @@ const Campground = require('../models/campground')
 const router = express.Router()
 
 
+// middlewares 
 function isLoggedIn(req, res, next) {
     if (req.isAuthenticated()) {
         return next()
@@ -10,6 +11,22 @@ function isLoggedIn(req, res, next) {
     res.redirect('/login')
 }
 
+async function checkCampgroundOwnership(req, res, next) {
+    if (req.isAuthenticated()) {
+        try {
+            let foundCamp = await Campground.findById(req.params.id)
+            if (foundCamp.author.id.equals(req.user.id)) {
+                return next()
+            } 
+        } catch(err) {
+            console.log(err)
+            res.redirect('back')
+        }
+    } 
+    res.redirect('back')
+}
+
+// routes
 router.get('/', async (req, res) => {
 
     const camps = await Campground.find({})
@@ -60,6 +77,30 @@ router.get('/:id', (req, res) => {
             res.render('campgrounds/show', { campground: camp });
         }
     })
+})
+
+// edit
+router.get('/:id/edit', checkCampgroundOwnership, async (req, res) => {
+    // try no longer needed
+    // error handling in the middleware 
+    let foundCamp = await Campground.findById(req.params.id) 
+    res.render('campgrounds/edit', { campground: foundCamp })        
+})
+
+// update
+router.put('/:id', checkCampgroundOwnership, async (req, res) => {
+    let updatedCamp = await Campground.findByIdAndUpdate(req.params.id, req.body.campground)
+    res.redirect('/campgrounds/' + req.params.id)
+})
+
+// delete
+router.delete('/:id', checkCampgroundOwnership, (req, res) => {
+    Campground.findByIdAndRemove(req.params.id, (err) => {
+        if (err) {
+            console.log(err)
+        }
+    })
+    res.redirect('/campgrounds')
 })
 
 module.exports = router

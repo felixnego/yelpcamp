@@ -7,13 +7,14 @@ const User = require('./models/user')
 const commentRoutes = require('./routes/comments')
 const campgroundRoutes = require('./routes/campgrounds')
 const indexRoutes = require('./routes/index')
-const seedDB = require('./seeds')
+const methodOverride = require('method-override')
 const app = express()
 
 
 app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
+app.use(methodOverride('_method'))
 app.use(express.static(__dirname + '/public'));
 
 app.use(require('express-session')({
