@@ -1,33 +1,12 @@
 const express = require('express')
 const Campground = require('../models/campground')
 const Comment = require('../models/comment')
+const middleware = require('../middleware')
 const router = express.Router({mergeParams: true})
 
-// midleware
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
-    res.redirect('/login')
-}
-
-async function checkCommentOwnership(req, res, next) {
-    if (req.isAuthenticated()) {
-        try {
-            let foundComm = await Comment.findById(req.params.comment_id)
-            if (foundComm.author.id.equals(req.user.id)) {
-                return next()
-            }
-        } catch (err) {
-            console.log(err)
-            res.redirect('back')
-        }
-    }
-    res.redirect('back')
-}
 
 // routes
-router.get('/new', isLoggedIn, (req, res) => {
+router.get('/new', middleware.isLoggedIn, (req, res) => {
     let id = req.params.id
 
     Campground.findById(id, (err, camp) => {
@@ -40,7 +19,7 @@ router.get('/new', isLoggedIn, (req, res) => {
 
 })
 
-router.post('/', isLoggedIn, (req, res) => {
+router.post('/', middleware.isLoggedIn, (req, res) => {
     let id = req.params.id
     let comment = req.body.comment
 
@@ -68,7 +47,7 @@ router.post('/', isLoggedIn, (req, res) => {
 })
 
 // edit and update
-router.get('/:comment_id/edit', checkCommentOwnership,  async (req, res) => {
+router.get('/:comment_id/edit', middleware.checkCommentOwnership,  async (req, res) => {
     try {
         let currentComment = await Comment.findById(req.params.comment_id)
         let camp = await Campground.findById(req.params.id)
@@ -78,7 +57,7 @@ router.get('/:comment_id/edit', checkCommentOwnership,  async (req, res) => {
     }
 })
 
-router.put('/:comment_id', checkCommentOwnership, async (req, res) => {
+router.put('/:comment_id', middleware.checkCommentOwnership, async (req, res) => {
     Comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, (err, updatedComm) => {
         if (err) {
             res.redirect('back')
@@ -89,7 +68,7 @@ router.put('/:comment_id', checkCommentOwnership, async (req, res) => {
 })
 
 // delete
-router.delete('/:comment_id', checkCommentOwnership, (req, res) => {
+router.delete('/:comment_id', middleware.checkCommentOwnership, (req, res) => {
     Comment.findByIdAndRemove(req.params.comment_id, (err) => {
         if (err) {
             console.log(err)

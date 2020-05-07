@@ -1,30 +1,8 @@
 const express = require('express')
 const Campground = require('../models/campground')
+const middleware = require('../middleware')  // a directory can be required if it has index.js
 const router = express.Router()
 
-
-// middlewares 
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
-    res.redirect('/login')
-}
-
-async function checkCampgroundOwnership(req, res, next) {
-    if (req.isAuthenticated()) {
-        try {
-            let foundCamp = await Campground.findById(req.params.id)
-            if (foundCamp.author.id.equals(req.user.id)) {
-                return next()
-            } 
-        } catch(err) {
-            console.log(err)
-            res.redirect('back')
-        }
-    } 
-    res.redirect('back')
-}
 
 // routes
 router.get('/', async (req, res) => {
@@ -38,7 +16,7 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.post('/', isLoggedIn, (req, res) => {
+router.post('/', middleware.isLoggedIn, (req, res) => {
     let name = req.body.name
     let image = req.body.image
     let description = req.body.description
@@ -62,7 +40,7 @@ router.post('/', isLoggedIn, (req, res) => {
     })
 })
 
-router.get('/new', isLoggedIn, (req, res) => {
+router.get('/new', middleware.isLoggedIn, (req, res) => {
     res.render('campgrounds/new')
 })
 
@@ -80,7 +58,7 @@ router.get('/:id', (req, res) => {
 })
 
 // edit
-router.get('/:id/edit', checkCampgroundOwnership, async (req, res) => {
+router.get('/:id/edit', middleware.checkCampgroundOwnership, async (req, res) => {
     // try no longer needed
     // error handling in the middleware 
     let foundCamp = await Campground.findById(req.params.id) 
@@ -88,13 +66,13 @@ router.get('/:id/edit', checkCampgroundOwnership, async (req, res) => {
 })
 
 // update
-router.put('/:id', checkCampgroundOwnership, async (req, res) => {
+router.put('/:id', middleware.checkCampgroundOwnership, async (req, res) => {
     let updatedCamp = await Campground.findByIdAndUpdate(req.params.id, req.body.campground)
     res.redirect('/campgrounds/' + req.params.id)
 })
 
 // delete
-router.delete('/:id', checkCampgroundOwnership, (req, res) => {
+router.delete('/:id', middleware.checkCampgroundOwnership, (req, res) => {
     Campground.findByIdAndRemove(req.params.id, (err) => {
         if (err) {
             console.log(err)
