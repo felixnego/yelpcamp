@@ -58,7 +58,9 @@ router.get('/:id', (req, res) => {
 })
 
 // edit
-router.get('/:id/edit', middleware.checkCampgroundOwnership, async (req, res) => {
+router.get('/:id/edit', (req, res, next) => {
+        middleware.checkOwnership(req, res, next, Campground)
+    }, async (req, res) => {
     // try no longer needed
     // error handling in the middleware 
     let foundCamp = await Campground.findById(req.params.id) 
@@ -66,13 +68,17 @@ router.get('/:id/edit', middleware.checkCampgroundOwnership, async (req, res) =>
 })
 
 // update
-router.put('/:id', middleware.checkCampgroundOwnership, async (req, res) => {
+router.put('/:id', (req, res, next) => {
+    middleware.checkOwnership(req, res, next, Campground)
+}, async (req, res) => {
     let updatedCamp = await Campground.findByIdAndUpdate(req.params.id, req.body.campground)
     res.redirect('/campgrounds/' + req.params.id)
 })
 
 // delete
-router.delete('/:id', middleware.checkCampgroundOwnership, (req, res) => {
+router.delete('/:id', (req, res, next) => {
+    middleware.checkOwnership(req, res, next, Campground)
+}, (req, res) => {
     Campground.findByIdAndRemove(req.params.id, (err) => {
         if (err) {
             console.log(err)
