@@ -3,12 +3,6 @@ const passport = require('passport')
 const User = require('../models/user')
 const router = express.Router()
 
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
-    res.redirect('/login')
-}
 
 router.get('/', (req, res) => {
     res.render('landing')
@@ -49,6 +43,7 @@ router.post('/login',
 
 router.get('/logout', (req, res) => {
     req.logout()
+    req.flash('success', 'Successfully logged out!')
     res.redirect('/campgrounds')
 })
 

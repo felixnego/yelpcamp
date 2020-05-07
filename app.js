@@ -1,6 +1,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+const flash = require('connect-flash')
 const passport = require('passport')
 const localStrategy = require('passport-local')
 const User = require('./models/user')
@@ -16,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 app.use(methodOverride('_method'))
 app.use(express.static(__dirname + '/public'));
-
+app.use(flash())
 app.use(require('express-session')({
     secret: 'Nobody expected the Spanish Inquisition',
     resave: false,
@@ -28,9 +29,11 @@ passport.use(new localStrategy(User.authenticate()))
 passport.serializeUser(User.serializeUser())
 passport.deserializeUser(User.deserializeUser())
 
-// pass the user to all templates
+// pass the user and flash message to all templates
 app.use(function(req, res, next) {
     res.locals.currentUser = req.user
+    res.locals.error = req.flash('error')
+    res.locals.success = req.flash('success')
     next()
 })
 
